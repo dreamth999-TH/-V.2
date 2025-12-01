@@ -1,0 +1,7 @@
+{
+  "name": "ระบบจัดการขยะและน้ำเสีย ทม.แม่ฮ่องสอน V.2",
+  "description": "ระบบจัดการขยะและน้ำเสีย ทม.แม่ฮ่องสอน V.2",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
