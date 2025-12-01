@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { WasteRecord } from '../types';
-import { Search, Eye, Edit2, Trash2, MapPin, Filter } from 'lucide-react';
+import { Search, Eye, Edit2, Trash2, MapPin, Filter, Navigation } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 interface WaterDataTableProps {
@@ -42,25 +42,38 @@ export const WaterDataTable: React.FC<WaterDataTableProps> = ({ data, onDelete, 
         });
     };
 
+    const openMap = (lat?: number, lng?: number) => {
+        if (lat && lng) {
+            // Use 'dir' (directions) with destination to trigger navigation mode
+            window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+        }
+    };
+
     const handleView = (record: WasteRecord) => {
         Swal.fire({
             title: `<span class="text-xl font-bold text-gray-800">${record.fullName}</span>`,
             html: `
                 <div class="text-left text-sm space-y-3 p-2">
-                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                        <p class="text-gray-500 text-xs">ที่อยู่</p>
-                        <p class="font-medium text-gray-800">${record.address} ${record.street}</p>
-                        <p class="text-gray-600">ชุมชน${record.community}</p>
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                        <p class="text-gray-500 text-xs mb-1">ที่อยู่</p>
+                        <p class="font-medium text-gray-800 text-base">${record.address} ${record.street}</p>
+                        <p class="text-gray-600 mt-1">ชุมชน${record.community}</p>
                     </div>
                     <div>
-                        <p class="font-semibold text-sky-700 mb-1">การจัดการน้ำเสีย:</p>
-                        <ul class="list-disc list-inside text-gray-600 pl-2">
+                        <p class="font-semibold text-sky-700 mb-2 flex items-center gap-2">
+                            <span class="w-1.5 h-4 bg-sky-500 rounded-full"></span>
+                            การจัดการน้ำเสีย
+                        </p>
+                        <ul class="list-disc list-inside text-gray-600 pl-2 space-y-1">
                             ${record.waterMethods.map(m => `<li>${m}</li>`).join('')}
                         </ul>
                     </div>
                      ${record.lat && record.lng ? `
-                    <div class="pt-2 border-t mt-2">
-                        <a href="https://www.google.com/maps?q=${record.lat},${record.lng}" target="_blank" class="text-blue-600 text-xs font-bold hover:underline flex items-center gap-1"><MapPin size={12}/> เปิดแผนที่ Google Maps</a>
+                    <div class="mt-4">
+                         <a href="https://www.google.com/maps/dir/?api=1&destination=${record.lat},${record.lng}" target="_blank" class="flex items-center justify-center w-full px-4 py-3 bg-sky-600 text-white text-sm font-bold rounded-xl hover:bg-sky-700 transition shadow-lg shadow-sky-200 gap-2 cursor-pointer no-underline decoration-0" style="text-decoration: none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                            นำทางด้วย Google Maps
+                        </a>
                     </div>` : ''}
                 </div>
             `,
@@ -168,7 +181,7 @@ export const WaterDataTable: React.FC<WaterDataTableProps> = ({ data, onDelete, 
                                 <th className="p-4 whitespace-nowrap">ที่อยู่ / ชุมชน</th>
                                 <th className="p-4 whitespace-nowrap">เบอร์โทร</th>
                                 <th className="p-4 min-w-[200px]">การจัดการน้ำเสีย</th>
-                                <th className="p-4 text-center w-24">จัดการ</th>
+                                <th className="p-4 text-center w-28">จัดการ</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -182,15 +195,6 @@ export const WaterDataTable: React.FC<WaterDataTableProps> = ({ data, onDelete, 
                                         <div className="flex flex-col">
                                             <span className="text-slate-700">{item.address}</span>
                                             <span className="text-xs text-slate-500">ชุมชน{item.community}</span>
-                                            {item.lat && item.lng && (
-                                                <a 
-                                                    href={`https://www.google.com/maps?q=${item.lat},${item.lng}`} 
-                                                    target="_blank" 
-                                                    className="text-sky-600 text-[10px] font-bold uppercase tracking-wider flex items-center mt-1 hover:text-sky-800 transition"
-                                                >
-                                                    <MapPin size={10} className="mr-1"/> แผนที่
-                                                </a>
-                                            )}
                                         </div>
                                     </td>
                                     <td className="p-4 align-top font-mono text-slate-600">{item.phone}</td>
@@ -199,6 +203,19 @@ export const WaterDataTable: React.FC<WaterDataTableProps> = ({ data, onDelete, 
                                     </td>
                                     <td className="p-4 align-top">
                                         <div className="flex justify-center gap-1">
+                                            {item.lat && item.lng ? (
+                                                <button 
+                                                    onClick={() => openMap(item.lat, item.lng)}
+                                                    className="p-1.5 text-sky-500 hover:bg-sky-50 rounded-lg transition"
+                                                    title="นำทาง (Google Maps)"
+                                                >
+                                                    <Navigation size={18} />
+                                                </button>
+                                            ) : (
+                                                <button disabled className="p-1.5 text-gray-300 cursor-not-allowed">
+                                                    <MapPin size={18} />
+                                                </button>
+                                            )}
                                             <button onClick={() => handleView(item)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition" title="ดูข้อมูล">
                                                 <Eye size={18} />
                                             </button>

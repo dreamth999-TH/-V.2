@@ -13,6 +13,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'waste' | 'water' | 'stats'>('dashboard');
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('loading');
   const [data, setData] = useState<WasteRecord[]>([]);
+  const [editingRecord, setEditingRecord] = useState<WasteRecord | null>(null);
 
   useEffect(() => {
     handleTestConnection();
@@ -54,7 +55,26 @@ function App() {
   };
   
   const handleEdit = (record: WasteRecord) => {
-      Swal.fire('Info', 'ฟังก์ชันแก้ไขข้อมูลยังไม่เปิดใช้งานในเวอร์ชัน Demo', 'info');
+      setEditingRecord(record);
+      setActiveTab('dashboard');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDashboardSuccess = () => {
+      loadData(true);
+      setEditingRecord(null);
+      // Optional: Stay on dashboard to input more or go back?
+      // For editing, usually nice to go back to list, but staying is fine too.
+      // If we were editing, let's go back to the relevant list
+      if (editingRecord) {
+          // Guessing which tab based on methods might be tricky, default to waste for now or stay on dashboard
+          // Let's just reset edit state and stay on dashboard (clean form)
+      }
+  };
+
+  const handleCancelEdit = () => {
+      setEditingRecord(null);
+      // Optional: switch back to list
   };
 
   return (
@@ -86,14 +106,17 @@ function App() {
                 {/* Navigation Links */}
                 <div className="flex items-center bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/50 overflow-x-auto max-w-full">
                     {[
-                        { id: 'dashboard', icon: Home, label: 'หน้าหลัก' },
+                        { id: 'dashboard', icon: Home, label: editingRecord ? 'แก้ไขข้อมูล' : 'หน้าหลัก' },
                         { id: 'waste', icon: Trash2, label: 'จัดการขยะ' },
                         { id: 'water', icon: Droplets, label: 'จัดการน้ำเสีย' },
                         { id: 'stats', icon: PieChart, label: 'สถิติ' },
                     ].map((item) => (
                         <button 
                             key={item.id}
-                            onClick={() => setActiveTab(item.id as any)}
+                            onClick={() => {
+                                setActiveTab(item.id as any);
+                                if (item.id !== 'dashboard') setEditingRecord(null); // Clear edit if moving away
+                            }}
                             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
                                 activeTab === item.id 
                                 ? 'bg-white text-emerald-600 shadow-md shadow-slate-200 scale-100' 
@@ -148,7 +171,15 @@ function App() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-7xl min-h-[calc(100vh-200px)]">
-        {activeTab === 'dashboard' && <div className="animate-fade-in-up"><Dashboard onSuccess={() => loadData(true)} /></div>}
+        {activeTab === 'dashboard' && (
+            <div className="animate-fade-in-up">
+                <Dashboard 
+                    onSuccess={handleDashboardSuccess} 
+                    initialData={editingRecord}
+                    onCancel={handleCancelEdit}
+                />
+            </div>
+        )}
         {activeTab === 'waste' && (
             <div className="animate-fade-in-up space-y-4">
                 <div className="flex items-center gap-3 mb-6">

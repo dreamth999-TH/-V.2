@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { WasteRecord } from '../types';
-import { Search, Eye, Edit2, Trash2, MapPin, Filter } from 'lucide-react';
+import { Search, Eye, Edit2, Trash2, MapPin, Filter, Navigation } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 interface WasteDataTableProps {
@@ -43,26 +43,42 @@ export const WasteDataTable: React.FC<WasteDataTableProps> = ({ data, onDelete, 
         });
     };
 
+    const openMap = (lat?: number, lng?: number) => {
+        if (lat && lng) {
+            // Use 'dir' (directions) with destination to trigger navigation mode
+            window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+        }
+    };
+
     const handleView = (record: WasteRecord) => {
         Swal.fire({
             title: `<span class="text-xl font-bold text-gray-800">${record.fullName}</span>`,
             html: `
                 <div class="text-left text-sm space-y-3 p-2">
-                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                        <p class="text-gray-500 text-xs">ที่อยู่</p>
-                        <p class="font-medium text-gray-800">${record.address} ${record.street}</p>
-                        <p class="text-gray-600">ชุมชน${record.community}</p>
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                        <p class="text-gray-500 text-xs mb-1">ที่อยู่</p>
+                        <p class="font-medium text-gray-800 text-base">${record.address} ${record.street}</p>
+                        <p class="text-gray-600 mt-1">ชุมชน${record.community}</p>
                     </div>
                     <div>
-                        <p class="font-semibold text-emerald-700 mb-1">การจัดการขยะ:</p>
-                        <ul class="list-disc list-inside text-gray-600 pl-2">
+                        <p class="font-semibold text-emerald-700 mb-2 flex items-center gap-2">
+                            <span class="w-1.5 h-4 bg-emerald-500 rounded-full"></span>
+                            การจัดการขยะ
+                        </p>
+                        <ul class="list-disc list-inside text-gray-600 pl-2 space-y-1">
                             ${record.wasteMethods.map(m => `<li>${m}</li>`).join('')}
                         </ul>
                     </div>
-                    <div class="flex justify-between items-center pt-2 border-t mt-2">
-                        <span class="text-gray-500 text-xs">ผู้รับผิดชอบ: ${record.responsiblePerson}</span>
-                        ${record.lat && record.lng ? `<a href="https://www.google.com/maps?q=${record.lat},${record.lng}" target="_blank" class="text-blue-600 text-xs font-bold hover:underline flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> เปิดแผนที่</a>` : ''}
+                    <div class="flex justify-between items-center pt-2 border-t border-gray-100 mt-2">
+                        <span class="text-gray-500 text-xs">ผู้รับผิดชอบ: <span class="font-medium text-gray-700">${record.responsiblePerson}</span></span>
                     </div>
+                    ${record.lat && record.lng ? `
+                    <div class="mt-4">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${record.lat},${record.lng}" target="_blank" class="flex items-center justify-center w-full px-4 py-3 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 gap-2 cursor-pointer no-underline decoration-0" style="text-decoration: none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                            นำทางด้วย Google Maps
+                        </a>
+                    </div>` : ''}
                 </div>
             `,
             width: 450,
@@ -173,7 +189,7 @@ export const WasteDataTable: React.FC<WasteDataTableProps> = ({ data, onDelete, 
                                 <th className="p-4 whitespace-nowrap">ที่อยู่ / ชุมชน</th>
                                 <th className="p-4 whitespace-nowrap">เบอร์โทร</th>
                                 <th className="p-4 min-w-[200px]">วิธีการจัดการขยะ</th>
-                                <th className="p-4 text-center w-32">จัดการ</th>
+                                <th className="p-4 text-center w-36">จัดการ</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -195,15 +211,6 @@ export const WasteDataTable: React.FC<WasteDataTableProps> = ({ data, onDelete, 
                                         <div className="flex flex-col">
                                             <span className="text-slate-700">{item.address}</span>
                                             <span className="text-xs text-slate-500">ชุมชน{item.community}</span>
-                                            {item.lat && item.lng && (
-                                                <a 
-                                                    href={`https://www.google.com/maps?q=${item.lat},${item.lng}`} 
-                                                    target="_blank" 
-                                                    className="text-emerald-600 text-[10px] font-bold uppercase tracking-wider flex items-center mt-1 hover:text-emerald-800 transition"
-                                                >
-                                                    <MapPin size={10} className="mr-1"/> Google Maps
-                                                </a>
-                                            )}
                                         </div>
                                     </td>
                                     <td className="p-4 align-top font-mono text-slate-600">{item.phone}</td>
@@ -212,6 +219,19 @@ export const WasteDataTable: React.FC<WasteDataTableProps> = ({ data, onDelete, 
                                     </td>
                                     <td className="p-4 align-top">
                                         <div className="flex justify-center gap-1">
+                                            {item.lat && item.lng ? (
+                                                <button 
+                                                    onClick={() => openMap(item.lat, item.lng)}
+                                                    className="p-1.5 text-emerald-500 hover:bg-emerald-50 rounded-lg transition"
+                                                    title="นำทาง (Google Maps)"
+                                                >
+                                                    <Navigation size={18} />
+                                                </button>
+                                            ) : (
+                                                <button disabled className="p-1.5 text-gray-300 cursor-not-allowed">
+                                                    <MapPin size={18} />
+                                                </button>
+                                            )}
                                             <button onClick={() => handleView(item)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition" title="ดูข้อมูล">
                                                 <Eye size={18} />
                                             </button>
